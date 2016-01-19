@@ -55,10 +55,8 @@ public:
     /*
       reply - reply to track
       requestId - unique request id, used to distinguis replies internally
-      shouldCaptureResponseBody - if true, response body will be available in 'finished' signal
      */
-    QNetworkReply* trackReply(QNetworkReply* reply, int requestId,
-                              bool shouldCaptureResponseBody);
+    QNetworkReply* trackReply(QNetworkReply *reply, int requestId);
 
 
     /*

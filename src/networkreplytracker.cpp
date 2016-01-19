@@ -37,10 +37,9 @@ NetworkReplyTracker::NetworkReplyTracker(QObject* parent)
 }
 
 
-QNetworkReply* NetworkReplyTracker::trackReply(QNetworkReply* reply, int requestId,
-        bool shouldCaptureResponseBody)
+QNetworkReply* NetworkReplyTracker::trackReply(QNetworkReply *reply, int requestId)
 {
-    NetworkReplyProxy* proxy = new NetworkReplyProxy(this, reply, shouldCaptureResponseBody);
+    NetworkReplyProxy *proxy = new NetworkReplyProxy(this, reply);
 
     /*
       Tracking link between proxy and proxied reply.

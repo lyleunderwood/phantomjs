@@ -32,11 +32,9 @@
 
 #include "networkreplyproxy.h"
 
-NetworkReplyProxy::NetworkReplyProxy(QObject* parent, QNetworkReply* reply,
-                                     bool shouldCaptureResponse)
+NetworkReplyProxy::NetworkReplyProxy(QObject* parent, QNetworkReply* reply)
     : QNetworkReply(parent)
     , m_reply(reply)
-    , m_shouldCaptureResponseBody(shouldCaptureResponse)
 {
     // apply attributes...
     setOperation(m_reply->operation());
@@ -157,10 +155,8 @@ void NetworkReplyProxy::readInternal()
 {
     QByteArray data = m_reply->readAll();
 
-    if (m_shouldCaptureResponseBody) {
-        //this is a response buffer, whole response is stored here
-        m_data += data;
-    }
+    //this is a response buffer, whole response is stored here
+    m_data += data;
 
     //this is a temporary buffer, data is wiped after a call to 'readData'
     m_buffer += data;
