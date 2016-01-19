@@ -829,6 +829,7 @@ QVariantMap WebPage::customHeaders() const
 }
 
 void WebPage::setCookieJar(CookieJar* cookieJar)
+{
     m_cookieJar = cookieJar;
     m_customWebPage->setCookieJar(m_cookieJar);
     m_networkAccessManager->setCookieJar(m_cookieJar);
