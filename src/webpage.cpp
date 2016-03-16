@@ -397,12 +397,6 @@ WebPage::WebPage(QObject* parent, const QUrl& baseUrl)
     connect(m_customWebPage, SIGNAL(loadProgress(int)), this, SLOT(updateLoadingProgress(int)));
     connect(m_customWebPage, SIGNAL(repaintRequested(QRect)), this, SLOT(handleRepaintRequested(QRect)), Qt::QueuedConnection);
 
-
-    // Start with transparent background.
-    QPalette palette = m_customWebPage->palette();
-    palette.setBrush(QPalette::Base, Qt::transparent);
-    m_customWebPage->setPalette(palette);
-
     // Set the page Library path
     setLibraryPath(QFileInfo(phantomCfg->scriptFile()).dir().absolutePath());
 
@@ -438,6 +432,8 @@ WebPage::WebPage(QObject* parent, const QUrl& baseUrl)
             SIGNAL(resourceError(QVariant)));
     connect(m_networkAccessManager, SIGNAL(resourceTimeout(QVariant)),
             SIGNAL(resourceTimeout(QVariant)));
+    connect(m_networkAccessManager, SIGNAL(networkError(QVariant)),
+            SIGNAL(networkError(QVariant)));
 
     m_dpi = qRound(QApplication::primaryScreen()->logicalDotsPerInch());
     m_customWebPage->setViewportSize(QSize(400, 300));
@@ -1450,9 +1446,8 @@ void WebPage::sendEvent(const QString& type, const QVariant& arg1, const QVarian
             // assume a raw integer char code was given
             key = arg1.toInt();
         }
-        QKeyEvent* keyEvent = new QKeyEvent(keyEventType, key, keyboardModifiers, text);
-        QApplication::postEvent(m_customWebPage, keyEvent);
-        QApplication::processEvents();
+        QKeyEvent keyEvent(keyEventType, key, keyboardModifiers, text);
+        QCoreApplication::sendEvent(m_customWebPage, &keyEvent);
         return;
     }
 
@@ -1513,11 +1508,10 @@ void WebPage::sendEvent(const QString& type, const QVariant& arg1, const QVarian
 
         // Prepare the Mouse event
         qDebug() << "Mouse Event:" << eventType << "(" << mouseEventType << ")" << m_mousePos << ")" << button << buttons;
-        QMouseEvent* event = new QMouseEvent(mouseEventType, m_mousePos, button, buttons, keyboardModifiers);
+        QMouseEvent event(mouseEventType, m_mousePos, button, buttons, keyboardModifiers);
 
         // Post and process events
-        QApplication::postEvent(m_customWebPage, event);
-        QApplication::processEvents();
+        QApplication::sendEvent(m_customWebPage, &event);
         return;
     }
 

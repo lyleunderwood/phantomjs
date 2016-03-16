@@ -499,6 +499,7 @@ signals:
     void resourceReceived(const QVariant& resource);
     void resourceError(const QVariant& errorData);
     void resourceTimeout(const QVariant& errorData);
+    void networkError(const QVariant& errorData);
     void urlChanged(const QString& url);
     void navigationRequested(const QString& url, const QString& navigationType, bool navigationLocked, bool isMainFrame);
     void rawPageCreated(QObject* page);
@@ -533,22 +534,22 @@ private:
     void javascriptInterrupt();
 
 private:
+    CookieJar* m_cookieJar;
     CustomPage* m_customWebPage;
     NetworkAccessManager* m_networkAccessManager;
-    QWebFrame* m_mainFrame;
-    QWebFrame* m_currentFrame;
-    QRect m_clipRect;
+    QPoint m_mousePos;
     QPoint m_scrollPosition;
-    QVariantMap m_paperSize; // For PDF output via render()
+    QRect m_clipRect;
     QString m_libraryPath;
+    QVariantMap m_paperSize; // For PDF output via render()
+    QWebFrame* m_currentFrame;
+    QWebFrame* m_mainFrame;
     QWebInspector* m_inspector;
     WebpageCallbacks* m_callbacks;
     bool m_navigationLocked;
-    QPoint m_mousePos;
     bool m_ownsPages;
-    int m_loadingProgress;
     bool m_shouldInterruptJs;
-    CookieJar* m_cookieJar;
+    int m_loadingProgress;
     qreal m_dpi;
 
     friend class Phantom;

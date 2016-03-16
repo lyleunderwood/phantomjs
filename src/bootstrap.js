@@ -3,16 +3,13 @@
 
 /*
   This file is part of the PhantomJS project from Ofi Labs.
-
   Copyright (C) 2011 Ariya Hidayat <ariya.hidayat@gmail.com>
   Copyright (C) 2011 Ivan De Marino <ivan.de.marino@gmail.com>
   Copyright (C) 2011 James Roe <roejames12@hotmail.com>
   Copyright (C) 2011 execjosh, http://execjosh.blogspot.com
   Copyright (C) 2012 James M. Greene <james.m.greene@gmail.com>
-
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are met:
-
     * Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
     * Redistributions in binary form must reproduce the above copyright
@@ -21,7 +18,6 @@
     * Neither the name of the <organization> nor the
       names of its contributors may be used to endorse or promote products
       derived from this software without specific prior written permission.
-
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -33,79 +29,48 @@
   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
-phantom.__defineErrorSignalHandler__ = function(obj, page, handlers) {
+phantom.__defineErrorSignalHandler__ = function (obj, page) {
     var handlerName = 'onError';
 
-    Object.defineProperty(obj, handlerName, {
-        set: function (f) {
-            // Disconnect previous handler (if any)
-            var handlerObj = handlers[handlerName];
-            if (!!handlerObj && typeof handlerObj.callback === "function" && typeof handlerObj.connector === "function") {
-                try { page.javaScriptErrorSent.disconnect(handlerObj.connector); }
-                catch (e) { }
-            }
+    // delete previous handler
+    if (typeof (obj[handlerName]) === 'function') {
+        try {
+            page.javaScriptErrorSent.disconnect(obj, obj[handlerName]);
+        } catch (e) { };
+    }
 
-            // Delete the previous handler
-            delete handlers[handlerName];
-
-            if (typeof f === 'function') {
-                var connector = function (message, lineNumber, source, stack) {
-                    var revisedStack = JSON.parse(stack).map(function (item) {
-                        return { file: item.url, line: item.lineNumber, function: item.functionName };
-                    });
-                    if (revisedStack.length == 0)
-                        revisedStack = [{ file: source, line: lineNumber }];
-
-                    f(message, revisedStack);
-                };
-                // Store the new handler for reference
-                handlers[handlerName] = {
-                    callback: f,
-                    connector: connector
-                };
-
-                page.javaScriptErrorSent.connect(connector);
-            }
-        },
-        get: function () {
-            var handlerObj = handlers[handlerName];
-            return (!!handlerObj && typeof handlerObj.callback === "function" && typeof handlerObj.connector === "function") ?
-                handlers[handlerName].callback :
-                undefined;
-        }
-    });
+    page.javaScriptErrorSent.connect(obj, obj[handlerName]);
 };
 
-(function() {
-    var handlers = {};
-    phantom.__defineErrorSignalHandler__(phantom, phantom.page, handlers);
+(function () {
+    // TODO: Make this output to STDERR
+    phantom.defaultErrorHandler = function (error, lineNumber, source, stack) {
+        console.log(error + '\n');
+
+        if (stack) {
+            JSON.parse(stack).forEach(function (item) {
+                var message = item.url + ':' + item.lineNumber + ':' + item.columnNumber;
+                if (item['functionName'])
+                    message += ' in ' + item['functionName'];
+                console.log('  ' + message);
+            });
+        }
+    };
+    phantom.onError = phantom.defaultErrorHandler;
+
+    phantom.__defineErrorSignalHandler__(phantom, phantom.page);
 })();
 
-// TODO: Make this output to STDERR
-phantom.defaultErrorHandler = function(message, stack) {
-    console.log(message + "\n");
-
-    stack.forEach(function(item) {
-        var message = item.file + ":" + item.line;
-        if (item["function"])
-            message += " in " + item["function"];
-        console.log("  " + message);
-    });
-};
-
-phantom.onError = phantom.defaultErrorHandler;
-
-phantom.callback = function(callback) {
+phantom.callback = function (callback) {
     var ret = phantom.createCallback();
-    ret.called.connect(function(args) {
+    ret.called.connect(function (args) {
         var retVal = callback.apply(this, args);
         ret.returnValue = retVal;
     });
     return ret;
 };
 
-(function() {
+(function () {
     // CommonJS module implementation follows
 
     window.global = window;
@@ -121,12 +86,12 @@ phantom.callback = function(callback) {
         get system() { return phantom.createSystem(); }
     };
     var extensions = {
-        '.js': function(module, filename) {
+        '.js': function (module, filename) {
             var code = fs.read(filename);
             module._compile(code);
         },
 
-        '.json': function(module, filename) {
+        '.json': function (module, filename) {
             module.exports = JSON.parse(fs.read(filename));
         }
     };
@@ -174,7 +139,7 @@ phantom.callback = function(callback) {
 
     function tryExtensions(path) {
         var filename, exts = Object.keys(extensions);
-        for (var i=0; i<exts.length; ++i) {
+        for (var i = 0; i < exts.length; ++i) {
             filename = tryFile(path + exts[i]);
             if (filename) return filename;
         }
@@ -204,20 +169,20 @@ phantom.callback = function(callback) {
         }
     }
 
-    Module.prototype._setFilename = function(filename) {
+    Module.prototype._setFilename = function (filename) {
         this.id = this.filename = filename;
         this.dirname = dirname(filename);
     };
 
-    Module.prototype._isNative = function() {
+    Module.prototype._isNative = function () {
         return this.filename && this.filename[0] === ':';
-    };
+    }
 
-    Module.prototype._getPaths = function(request) {
+    Module.prototype._getPaths = function (request) {
         var _paths = [], dir;
 
         if (request[0] === '.') {
-            _paths.push(fs.absolute(joinPath(phantom.webdriverMode ? ":/ghostdriver" : this.dirname, request)));
+            _paths.push(fs.absolute(joinPath(phantom.webdriverMode ? ':/ghostdriver' : this.dirname, request)));
         } else if (fs.isAbsolute(request)) {
             _paths.push(fs.absolute(request));
         } else {
@@ -233,8 +198,8 @@ phantom.callback = function(callback) {
             }
         }
 
-        for (var i=0; i<paths.length; ++i) {
-            if(fs.isAbsolute(paths[i])) {
+        for (var i = 0; i < paths.length; ++i) {
+            if (fs.isAbsolute(paths[i])) {
                 _paths.push(fs.absolute(joinPath(paths[i], request)));
             } else {
                 _paths.push(fs.absolute(joinPath(this.dirname, paths[i], request)));
@@ -244,10 +209,10 @@ phantom.callback = function(callback) {
         return _paths;
     };
 
-    Module.prototype._getFilename = function(request) {
+    Module.prototype._getFilename = function (request) {
         var path, filename = null, _paths = this._getPaths(request);
 
-        for (var i=0; i<_paths.length && !filename; ++i) {
+        for (var i = 0; i < _paths.length && !filename; ++i) {
             path = _paths[i];
             filename = tryFile(path) || tryExtensions(path) || tryPackage(path) ||
                 tryExtensions(joinPath(path, 'index'));
@@ -256,7 +221,7 @@ phantom.callback = function(callback) {
         return filename;
     };
 
-    Module.prototype._getRequire = function() {
+    Module.prototype._getRequire = function () {
         var self = this;
 
         function require(request) {
@@ -265,24 +230,24 @@ phantom.callback = function(callback) {
         require.cache = cache;
         require.extensions = extensions;
         require.paths = paths;
-        require.stub = function(request, exports) {
+        require.stub = function (request, exports) {
             self.stubs[request] = { exports: exports };
         };
 
         return require;
     };
 
-    Module.prototype._load = function() {
+    Module.prototype._load = function () {
         var ext = this.filename.match(/\.[^.]+$/)[0];
         if (!ext) ext = '.js';
         extensions[ext](this, this.filename);
     };
 
-    Module.prototype._compile = function(code) {
+    Module.prototype._compile = function (code) {
         phantom.loadModule(code, this.filename);
     };
 
-    Module.prototype.require = function(request) {
+    Module.prototype.require = function (request) {
         var filename, module;
 
         // first see if there are any stubs for the request
@@ -313,7 +278,7 @@ phantom.callback = function(callback) {
         return module.exports;
     };
 
-    (function() {
+    (function () {
         var cwd, mainFilename, mainModule = new Module();
         window.require = mainModule._getRequire();
         fs = loadFs();

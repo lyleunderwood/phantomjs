@@ -24,7 +24,7 @@ async_test(function () {
     page.onResourceReceived = this.step_func(function (resource) {
         assert_equals(resource.status, 401);
     });
-    page.onResourceError = this.step_func(function (err) {
+    page.onNetworkError = this.step_func(function (err) {
         assert_equals(err.errorString, "Operation canceled");
     });
 

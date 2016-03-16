@@ -467,7 +467,6 @@ void NetworkAccessManager::provideAuthentication(QNetworkReply* reply, QAuthenti
     } else {
         m_authAttempts = 0;
         this->handleFinished(reply, 401, "Authorization Required");
-        reply->close();
     }
 }
 
@@ -488,9 +487,28 @@ void NetworkAccessManager::handleFinished(QNetworkReply* reply, const QVariant& 
 
     m_ids.remove(reply);
     m_started.remove(reply);
-    reply->deleteLater();
 
-    emit resourceReceived(data);
+    if (reply->error() != QNetworkReply::NoError) {
+        data["errorCode"] = reply->error();
+        data["errorString"] = reply->errorString();
+        data["status"] = status;
+        data["statusText"] = statusText;
+        emit resourceError(data);
+    } else {
+        // check for redirect
+        QUrl redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
+        if (redirect.isValid() && reply->url() != redirect) {
+            if (redirect.isRelative()) {
+                redirect = reply->url().resolved(redirect);
+            }
+            QNetworkRequest req(redirect);
+            this->get(req);
+        }
+        emit resourceReceived(data);
+    }
+
+    reply->close();
+    reply->deleteLater();
 }
 
 void NetworkAccessManager::handleSslErrors(const QList<QSslError>& errors)
@@ -521,7 +539,9 @@ void NetworkAccessManager::handleNetworkError()
     data["status"] = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
     data["statusText"] = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute);
 
-    emit resourceError(data);
+    emit networkError(data);
+
+    reply->deleteLater();
 }
 
 QVariantList NetworkAccessManager::getHeadersFromReply(const QNetworkReply* reply)
