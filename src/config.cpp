@@ -583,11 +583,11 @@ void Config::resetToDefaults()
     m_offlineStoragePath = QString();
     m_offlineStorageDefaultQuota = -1;
     m_localStoragePath = QString();
-    m_localStorageDefaultQuota = -1;
+    m_localStorageDefaultQuota = 5000;
     m_diskCacheEnabled = false;
     m_maxDiskCacheSize = -1;
     m_diskCachePath = QString();
-    m_ignoreSslErrors = false;
+    m_ignoreSslErrors = true;
     m_localUrlAccessEnabled = true;
     m_localToRemoteUrlAccessEnabled = false;
     m_outputEncoding = "UTF-8";
@@ -605,12 +605,12 @@ void Config::resetToDefaults()
     m_debug = false;
     m_remoteDebugPort = -1;
     m_remoteDebugAutorun = false;
-    m_webSecurityEnabled = true;
+    m_webSecurityEnabled = false;
     m_javascriptCanOpenWindows = true;
     m_javascriptCanCloseWindows = true;
     m_helpFlag = false;
     m_printDebugMessages = false;
-    m_sslProtocol = "default";
+    m_sslProtocol = "any";
     // Default taken from Chromium 35.0.1916.153
     m_sslCiphers = ("ECDHE-ECDSA-AES128-GCM-SHA256"
                     ":ECDHE-RSA-AES128-GCM-SHA256"

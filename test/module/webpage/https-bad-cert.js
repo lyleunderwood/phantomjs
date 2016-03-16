@@ -6,7 +6,7 @@ async_test(function () {
 
     var page = require('webpage').create();
     var url = TEST_HTTPS_BASE;
-    page.onResourceError = this.step_func(function (err) {
+    page.onNetworkError = this.step_func(function (err) {
         assert_equals(err.url, url);
         assert_equals(err.errorString, "SSL handshake failed");
     });
