@@ -34,8 +34,8 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QSslConfiguration>
-#include <QTimer>
 #include <QStringList>
+#include <QTimer>
 
 class Config;
 class QAuthenticator;
@@ -103,22 +103,21 @@ protected:
     QString m_userName;
     QString m_password;
     QNetworkReply* createRequest(Operation op, const QNetworkRequest& req, QIODevice* outgoingData = 0);
-    void handleFinished(QNetworkReply* reply, const QVariant& status, const QVariant& statusText);
 
-signals:
+ Q_SIGNALS:
     void resourceRequested(const QVariant& data, QObject*);
     void resourceReceived(const QVariant& data);
     void resourceError(const QVariant& data);
     void resourceTimeout(const QVariant& data);
     void networkError(const QVariant& data);
 
-private slots:
+private Q_SLOTS:
     void handleStarted();
     void handleFinished(QNetworkReply* reply);
-    void provideAuthentication(QNetworkReply* reply, QAuthenticator* authenticator);
-    void handleSslErrors(const QList<QSslError>& errors);
+    void handleSslErrors(QNetworkReply *reply, const QList<QSslError>& errors);
     void handleNetworkError();
     void handleTimeout();
+    void provideAuthentication(QNetworkReply* reply, QAuthenticator* authenticator);
 
 private:
     void prepareSslConfiguration(const Config* config);
