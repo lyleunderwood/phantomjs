@@ -465,8 +465,8 @@ void NetworkAccessManager::handleFinished(QNetworkReply* reply)
     }
 
     QVariantList headers = getHeadersFromReply(reply);
-    QVariant status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-    QVariant statusText = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toByteArray();
+    QVariant status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+    QVariant statusText = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute);
 
     QVariantMap data;
     data["stage"] = "end";
@@ -485,22 +485,11 @@ void NetworkAccessManager::handleFinished(QNetworkReply* reply)
     if (reply->error() != QNetworkReply::NoError) {
         data["errorCode"] = reply->error();
         data["errorString"] = reply->errorString();
-        data["status"] = status;
-        data["statusText"] = statusText;
 
         emit resourceError(data);
-    }/* else {
-        // check for redirect
-        QUrl redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
-        if (redirect.isValid() && reply->url() != redirect) {
-            if (redirect.isRelative()) {
-                redirect = reply->url().resolved(redirect);
-            }
-            QNetworkRequest req(redirect);
-            this->get(req);
-        }
+    } else {
         emit resourceReceived(data);
-    }*/
+    }
 
     reply->deleteLater();
 }
