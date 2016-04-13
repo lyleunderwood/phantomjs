@@ -7,7 +7,7 @@ async_test(function () {
     var url = TEST_HTTP_BASE + "iframe.html#file:///nonexistent";
     var rsErrorCalled = false;
 
-    page.onResourceError = this.step_func(function (error) {
+    page.onNetworkrror = this.step_func(function (error) {
         rsErrorCalled = true;
         assert_equals(error.url, "file:///nonexistent");
         assert_equals(error.errorCode, 203);

@@ -58,6 +58,7 @@ class JsNetworkRequest : public QObject
 
 public:
     JsNetworkRequest(QNetworkRequest* request, QObject* parent = 0);
+
     Q_INVOKABLE void abort();
     Q_INVOKABLE void changeUrl(const QString& url);
     Q_INVOKABLE bool setHeader(const QString& name, const QVariant& value);
@@ -83,6 +84,8 @@ class NetworkAccessManager : public QNetworkAccessManager
     Q_OBJECT
 public:
     NetworkAccessManager(QObject* parent, const Config* config);
+    ~NetworkAccessManager();
+
     void setUserName(const QString& userName);
     void setPassword(const QString& password);
     void setMaxAuthAttempts(int maxAttempts);
@@ -103,19 +106,21 @@ protected:
     QString m_userName;
     QString m_password;
     QNetworkReply* createRequest(Operation op, const QNetworkRequest& req, QIODevice* outgoingData = 0);
-    void handleFinished(QNetworkReply* reply, const QVariant& status, const QVariant& statusText);
+    void handleFinished(QNetworkReply* reply, int status, const QString& statusText);
 
-signals:
+Q_SIGNALS:
     void resourceRequested(const QVariant& data, QObject*);
     void resourceReceived(const QVariant& data);
     void resourceError(const QVariant& data);
     void resourceTimeout(const QVariant& data);
+    void networkError(const QVariant& data);
 
 private slots:
     void handleStarted();
-    void handleFinished(QNetworkReply* reply);
+    void handleFinished();
     void provideAuthentication(QNetworkReply* reply, QAuthenticator* authenticator);
     void handleSslErrors(const QList<QSslError>& errors);
+    void handleResourceError(QNetworkReply* reply, int status, const QString& statusText);
     void handleNetworkError();
     void handleTimeout();
 

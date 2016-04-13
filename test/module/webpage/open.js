@@ -20,11 +20,10 @@ async_test(function () {
     var webpage = require('webpage');
     var page = webpage.create();
 
-    // both onResourceReceived and onResourceError should be called
-    page.onResourceReceived = this.step_func(function (resource) {
+    page.onResourceError = this.step_func(function (resource) {
         assert_equals(resource.status, 401);
     });
-    page.onResourceError = this.step_func(function (err) {
+    page.onNetworkError = this.step_func(function (err) {
         assert_equals(err.errorString, "Operation canceled");
     });
 

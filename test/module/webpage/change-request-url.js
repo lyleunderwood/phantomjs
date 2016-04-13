@@ -18,10 +18,10 @@ async_test(function () {
 
     page.onResourceReceived = this.step_func(function(data) {
         if (data.url === alternativeUrl && data.stage === 'start') {
-            ++startStage;
+            startStage++;
         }
         if (data.url === alternativeUrl && data.stage === 'end') {
-            ++endStage;
+            endStage++;
         }
     });
 

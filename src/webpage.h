@@ -488,7 +488,7 @@ public slots:
     qreal printMargin(const QVariantMap&, const QString&);
     qreal getHeight(const QVariantMap&, const QString&) const;
 
-signals:
+Q_SIGNALS:
     void initialized();
     void loadStarted();
     void loadFinished(const QString& status);
@@ -499,6 +499,7 @@ signals:
     void resourceReceived(const QVariant& resource);
     void resourceError(const QVariant& errorData);
     void resourceTimeout(const QVariant& errorData);
+    void networkError(const QVariant& errorData);
     void urlChanged(const QString& url);
     void navigationRequested(const QString& url, const QString& navigationType, bool navigationLocked, bool isMainFrame);
     void rawPageCreated(QObject* page);

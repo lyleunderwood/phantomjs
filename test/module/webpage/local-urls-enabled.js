@@ -7,7 +7,7 @@ async_test(function () {
     var url = "file:///nonexistent";
     var rsErrorCalled = false;
 
-    page.onResourceError = this.step_func(function (error) {
+    page.onNetworkError = this.step_func(function (error) {
         rsErrorCalled = true;
         assert_equals(error.url, url);
         assert_equals(error.errorCode, 203);

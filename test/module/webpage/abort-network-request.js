@@ -16,7 +16,7 @@ async_test(function () {
             abortedIds[requestData.id] = 1;
         }
     });
-    page.onResourceError = this.step_func(function(error) {
+    page.onNetworkError = this.step_func(function(error) {
         // We can't match up errors to requests by URL because error.url will
         // be the empty string in this case.  FIXME.
         assert_own_property(abortedIds, error.id);

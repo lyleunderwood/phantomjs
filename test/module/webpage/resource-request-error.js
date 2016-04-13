@@ -2,14 +2,20 @@ var webpage = require('webpage');
 
 async_test(function () {
     var page = webpage.create();
-    var resourceErrors = 0;
+    var resourceErrors = 0,
+        networkErrors = 0;
 
     page.onResourceError = this.step_func(function(err) {
-        ++resourceErrors;
+        resourceErrors++;
 
         assert_equals(err.status, 404);
         assert_equals(err.statusText, 'File not found');
         assert_equals(err.url, TEST_HTTP_BASE + 'notExist.png');
+    });
+
+    page.onNetworkError = this.step_func(function(err) {
+        ++networkErrors;
+
         assert_equals(err.errorCode, 203);
         assert_regexp_match(err.errorString,
             /Error downloading http:\/\/localhost:[0-9]+\/notExist\.png/);

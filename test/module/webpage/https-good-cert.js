@@ -5,7 +5,7 @@ async_test(function () {
 
     var page = require('webpage').create();
     var url = TEST_HTTPS_BASE;
-    page.onResourceError = this.unreached_func();
+    page.onNetworkError = this.unreached_func();
     page.open(url, this.step_func_done(function (status) {
         assert_equals(status, "success");
     }));
