@@ -49,6 +49,7 @@
 static const struct QCommandLineConfigEntry flags[] = {
     { QCommandLine::Option, '\0', "cookies-file", "Sets the file name to store the persistent cookies", QCommandLine::Optional },
     { QCommandLine::Option, '\0', "config", "Specifies JSON-formatted configuration file", QCommandLine::Optional },
+    { QCommandLine::Option, '\0', "clear-indexeddb", "Specifies to clear IndexedDB", QCommandLine::Optional },
     { QCommandLine::Option, '\0', "debug", "Prints additional warning and debug message: 'true' or 'false' (default)", QCommandLine::Optional },
     { QCommandLine::Option, '\0', "disk-cache", "Enables disk cache: 'true' or 'false' (default)", QCommandLine::Optional },
     { QCommandLine::Option, '\0', "disk-cache-path", "Specifies the location for the disk cache", QCommandLine::Optional },
@@ -639,6 +640,7 @@ void Config::resetToDefaults()
     m_webdriverLogFile = QString();
     m_webdriverLogLevel = "INFO";
     m_webdriverSeleniumGridHub = QString();
+    m_clearIndexedDb = true;
 }
 
 void Config::setProxyAuthPass(const QString& value)
@@ -834,6 +836,19 @@ void Config::handleOption(const QString& option, const QVariant& value)
     if (option == "webdriver-selenium-grid-hub") {
         setWebdriverSeleniumGridHub(value.toString());
     }
+    if (option == "clear-indexeddb") {
+        setClearIndexedDb(value.toBool());
+    }
+}
+
+bool Config::clearIndexedDb()
+{
+    return m_clearIndexedDb;
+}
+
+void Config::setClearIndexedDb(bool value)
+{
+    m_clearIndexedDb = value;
 }
 
 void Config::handleParam(const QString& param, const QVariant& value)
