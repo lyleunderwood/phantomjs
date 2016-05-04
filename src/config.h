@@ -208,6 +208,9 @@ public:
     void setWebdriverSeleniumGridHub(const QString& hubUrl);
     QString webdriverSeleniumGridHub() const;
 
+    void setClearIndexedDb(bool);
+    bool clearIndexedDb();
+
 public slots:
     void handleSwitch(const QString& sw);
     void handleOption(const QString& option, const QVariant& value);
@@ -256,6 +259,7 @@ private:
     bool m_printDebugMessages;
     bool m_javascriptCanOpenWindows;
     bool m_javascriptCanCloseWindows;
+    bool m_clearIndexedDb;
     QString m_sslProtocol;
     QString m_sslCiphers;
     QString m_sslCertificatesPath;
