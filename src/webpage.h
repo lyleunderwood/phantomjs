@@ -45,7 +45,7 @@ class NetworkAccessManager;
 class QWebInspector;
 class Phantom;
 
-class WebPage : public QObject, public QWebFrame::PrintCallback
+class WebPage : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString title READ title)
@@ -484,10 +484,6 @@ public slots:
 
     void setProxy(const QString& proxyUrl);
 
-    qreal stringToPointSize(const QString&) const;
-    qreal printMargin(const QVariantMap&, const QString&);
-    qreal getHeight(const QVariantMap&, const QString&) const;
-
 signals:
     void initialized();
     void loadStarted();
@@ -499,7 +495,6 @@ signals:
     void resourceReceived(const QVariant& resource);
     void resourceError(const QVariant& errorData);
     void resourceTimeout(const QVariant& errorData);
-    void networkError(const QVariant& errorData);
     void urlChanged(const QString& url);
     void navigationRequested(const QString& url, const QString& navigationType, bool navigationLocked, bool isMainFrame);
     void rawPageCreated(QObject* page);
@@ -534,23 +529,22 @@ private:
     void javascriptInterrupt();
 
 private:
-    CookieJar* m_cookieJar;
     CustomPage* m_customWebPage;
     NetworkAccessManager* m_networkAccessManager;
-    QPoint m_mousePos;
-    QPoint m_scrollPosition;
-    QRect m_clipRect;
-    QString m_libraryPath;
-    QVariantMap m_paperSize; // For PDF output via render()
-    QWebFrame* m_currentFrame;
     QWebFrame* m_mainFrame;
+    QWebFrame* m_currentFrame;
+    QRect m_clipRect;
+    QPoint m_scrollPosition;
+    QVariantMap m_paperSize; // For PDF output via render()
+    QString m_libraryPath;
     QWebInspector* m_inspector;
     WebpageCallbacks* m_callbacks;
     bool m_navigationLocked;
+    QPoint m_mousePos;
     bool m_ownsPages;
-    bool m_shouldInterruptJs;
     int m_loadingProgress;
-    qreal m_dpi;
+    bool m_shouldInterruptJs;
+    CookieJar* m_cookieJar;
 
     friend class Phantom;
     friend class CustomPage;

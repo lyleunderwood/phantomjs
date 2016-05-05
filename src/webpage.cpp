@@ -30,47 +30,47 @@
 
 #include "webpage.h"
 
+#include <math.h>
+
 #include <QApplication>
-#include <QBuffer>
 #include <QContextMenuEvent>
-#include <QDateTime>
-#include <QDebug>
 #include <QDesktopServices>
+#include <QDateTime>
 #include <QDir>
 #include <QFileInfo>
-#include <QImageWriter>
 #include <QKeyEvent>
-#include <QMapIterator>
 #include <QMouseEvent>
 #include <QNetworkAccessManager>
 #include <QNetworkCookie>
-#include <QNetworkProxy>
 #include <QNetworkRequest>
 #include <QPainter>
-#include <QScreen>
-#include <QUrl>
-#include <QUuid>
+#include <QtPrintSupport/QPrinter>
+//#include <QWebHistory>
+//#include <QWebHistoryItem>
 #include <QWebElement>
 #include <QWebFrame>
-#include <QWebHistory>
-#include <QWebHistoryItem>
-#include <QWebInspector>
 #include <QWebPage>
-#include <QtPrintSupport/QPrinter>
-#include <math.h>
+//#include <QWebInspector>
+#include <QMapIterator>
+#include <QBuffer>
+#include <QDebug>
+#include <QImageWriter>
+#include <QUuid>
+#include <QUrl>
+#include <QNetworkProxy>
 
-#include "callback.h"
+#include "phantom.h"
+#include "networkaccessmanager.h"
+#include "utils.h"
 #include "config.h"
 #include "consts.h"
+#include "callback.h"
 #include "cookiejar.h"
-#include "networkaccessmanager.h"
-#include "phantom.h"
 #include "system.h"
-#include "utils.h"
 
 #ifdef Q_OS_WIN
-#include <fcntl.h>
 #include <io.h>
+#include <fcntl.h>
 #endif
 
 // Ensure we have at least head and body.
@@ -367,8 +367,8 @@ WebPage::WebPage(QObject* parent, const QUrl& baseUrl)
     // attribute "WebSecurityEnabled" must be applied during the initializing
     // security context for Document instance. Setting up it later will not cause any effect
     // see <qt\src\3rdparty\webkit\Source\WebCore\dom\Document.cpp:4468>
-    QWebSettings* settings = m_customWebPage->settings();
-    settings->setAttribute(QWebSettings::WebSecurityEnabled, phantomCfg->webSecurityEnabled());
+    //QWebSettings* settings = m_customWebPage->settings();
+    //settings->setAttribute(QWebSettings::WebSecurityEnabled, phantomCfg->webSecurityEnabled());
 
     m_mainFrame = m_customWebPage->mainFrame();
     m_currentFrame = m_mainFrame;
@@ -397,6 +397,12 @@ WebPage::WebPage(QObject* parent, const QUrl& baseUrl)
     connect(m_customWebPage, SIGNAL(loadProgress(int)), this, SLOT(updateLoadingProgress(int)));
     connect(m_customWebPage, SIGNAL(repaintRequested(QRect)), this, SLOT(handleRepaintRequested(QRect)), Qt::QueuedConnection);
 
+
+    // Start with transparent background.
+    QPalette palette = m_customWebPage->palette();
+    palette.setBrush(QPalette::Base, Qt::transparent);
+    m_customWebPage->setPalette(palette);
+
     // Set the page Library path
     setLibraryPath(QFileInfo(phantomCfg->scriptFile()).dir().absolutePath());
 
@@ -409,16 +415,12 @@ WebPage::WebPage(QObject* parent, const QUrl& baseUrl)
     pageSettings->setAttribute(QWebSettings::OfflineWebApplicationCacheEnabled, true);
     pageSettings->setAttribute(QWebSettings::FrameFlatteningEnabled, true);
 
-    bool isLocalStorageEnabled = phantomCfg->localStorageDefaultQuota() >= 0;
-    pageSettings->setAttribute(QWebSettings::LocalStorageEnabled, isLocalStorageEnabled);
+    pageSettings->setAttribute(QWebSettings::LocalStorageEnabled, true);
 
-    if (isLocalStorageEnabled) {
-        if (phantomCfg->localStoragePath().isEmpty()) {
-            pageSettings->setLocalStoragePath(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
-        }
-        else {
-            pageSettings->setLocalStoragePath(phantomCfg->localStoragePath());
-        }
+    if (phantomCfg->localStoragePath().isEmpty()) {
+        pageSettings->setLocalStoragePath(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
+    } else {
+        pageSettings->setLocalStoragePath(phantomCfg->localStoragePath());
     }
 
     // Custom network access manager to allow traffic monitoring.
@@ -432,19 +434,12 @@ WebPage::WebPage(QObject* parent, const QUrl& baseUrl)
             SIGNAL(resourceError(QVariant)));
     connect(m_networkAccessManager, SIGNAL(resourceTimeout(QVariant)),
             SIGNAL(resourceTimeout(QVariant)));
-    connect(m_networkAccessManager, SIGNAL(networkError(QVariant)),
-            SIGNAL(networkError(QVariant)));
 
-    m_dpi = qRound(QApplication::primaryScreen()->logicalDotsPerInch());
     m_customWebPage->setViewportSize(QSize(400, 300));
 }
 
 WebPage::~WebPage()
 {
-    if (Phantom::instance()->config()->clearIndexedDb()) {
-        this->evaluateJavaScript("window.indexedDB.webkitGetDatabaseNames().onsuccess=function(e,a){var t=e.target.result;for(var n in t)indexedDB.deleteDatabase(t[n])};");
-    }
-
     emit closing(this);
 }
 
@@ -528,35 +523,37 @@ int WebPage::loadingProgress() const
 
 bool WebPage::canGoBack()
 {
-    return m_customWebPage->history()->canGoBack();
+    return false;
+    //return m_customWebPage->history()->canGoBack();
 }
 
 bool WebPage::goBack()
 {
-    if (canGoBack()) {
+    /*if (canGoBack()) {
         m_customWebPage->history()->back();
         return true;
-    }
+    }*/
     return false;
 }
 
 bool WebPage::canGoForward()
 {
-    return m_customWebPage->history()->canGoForward();
+    return false;
+    //return m_customWebPage->history()->canGoForward();
 }
 
 bool WebPage::goForward()
 {
-    if (canGoForward()) {
+    /*if (canGoForward()) {
         m_customWebPage->history()->forward();
         return true;
-    }
+    }*/
     return false;
 }
 
 bool WebPage::go(int historyItemRelativeIndex)
 {
-    // Convert the relative index to absolute
+   /*// Convert the relative index to absolute
     int historyItemIndex = m_customWebPage->history()->currentItemIndex() + historyItemRelativeIndex;
 
     // Fetch the right item from the history
@@ -567,7 +564,7 @@ bool WebPage::go(int historyItemRelativeIndex)
         m_customWebPage->history()->goToItem(historyItem);
         return true;
     }
-
+*/
     return false;
 }
 
@@ -614,6 +611,7 @@ int WebPage::offlineStorageQuota() const
 
 int WebPage::showInspector(const int port)
 {
+    /*
     m_customWebPage->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
     m_inspector = new QWebInspector;
     m_inspector->setPage(m_customWebPage);
@@ -623,7 +621,7 @@ int WebPage::showInspector(const int port)
     } else {
         m_customWebPage->setProperty("_q_webInspectorServerPort", port);
         return m_customWebPage->property("_q_webInspectorServerPort").toInt();
-    }
+    }*/
     return port;
 }
 
@@ -635,7 +633,7 @@ void WebPage::applySettings(const QVariantMap& def)
     opt->setAttribute(QWebSettings::JavascriptEnabled, def[PAGE_SETTINGS_JS_ENABLED].toBool());
     opt->setAttribute(QWebSettings::XSSAuditingEnabled, def[PAGE_SETTINGS_XSS_AUDITING].toBool());
     opt->setAttribute(QWebSettings::LocalContentCanAccessRemoteUrls, def[PAGE_SETTINGS_LOCAL_ACCESS_REMOTE].toBool());
-    opt->setAttribute(QWebSettings::WebSecurityEnabled, def[PAGE_SETTINGS_WEB_SECURITY_ENABLED].toBool());
+    //opt->setAttribute(QWebSettings::WebSecurityEnabled, def[PAGE_SETTINGS_WEB_SECURITY_ENABLED].toBool());
     opt->setAttribute(QWebSettings::JavascriptCanOpenWindows, def[PAGE_SETTINGS_JS_CAN_OPEN_WINDOWS].toBool());
     opt->setAttribute(QWebSettings::JavascriptCanCloseWindows, def[PAGE_SETTINGS_JS_CAN_CLOSE_WINDOWS].toBool());
 
@@ -661,10 +659,6 @@ void WebPage::applySettings(const QVariantMap& def)
 
     if (def.contains(PAGE_SETTINGS_PROXY)) {
         setProxy(def[PAGE_SETTINGS_PROXY].toString());
-    }
-
-    if (def.contains(PAGE_SETTINGS_DPI)) {
-        m_dpi = def[PAGE_SETTINGS_DPI].toReal();
     }
 }
 
@@ -769,9 +763,7 @@ QVariant WebPage::evaluateJavaScript(const QString& code)
 
     qDebug() << "WebPage - evaluateJavaScript" << function;
 
-    evalResult = m_currentFrame->evaluateJavaScript(
-                     function,                                   //< function evaluated
-                     QString("phantomjs://webpage.evaluate()")); //< reference source file
+    evalResult = m_currentFrame->evaluateJavaScript(function);
 
     qDebug() << "WebPage - evaluateJavaScript result" << evalResult;
 
@@ -943,7 +935,7 @@ void WebPage::openUrl(const QString& address, const QVariant& op, const QVariant
     }
 
     if (networkOp == QNetworkAccessManager::UnknownOperation) {
-        m_mainFrame->evaluateJavaScript("console.error('Unknown network operation: " + operation + "');", QString());
+        m_mainFrame->evaluateJavaScript("console.error('Unknown network operation: " + operation + "');");
         return;
     }
 
@@ -1141,7 +1133,9 @@ QImage WebPage::renderImage()
     return buffer;
 }
 
-qreal WebPage::stringToPointSize(const QString& string) const
+#define PHANTOMJS_PDF_DPI 72            // Different defaults. OSX: 72, X11: 75(?), Windows: 96
+
+qreal stringToPointSize(const QString& string)
 {
     static const struct {
         QString unit;
@@ -1150,8 +1144,8 @@ qreal WebPage::stringToPointSize(const QString& string) const
         { "mm", 72 / 25.4 },
         { "cm", 72 / 2.54 },
         { "in", 72 },
-        { "px", 72.0 / m_dpi },
-        { "", 72.0 / m_dpi }
+        { "px", 72.0 / PHANTOMJS_PDF_DPI },
+        { "", 72.0 / PHANTOMJS_PDF_DPI }
     };
     for (uint i = 0; i < sizeof(units) / sizeof(units[0]); ++i) {
         if (string.endsWith(units[i].unit)) {
@@ -1163,7 +1157,7 @@ qreal WebPage::stringToPointSize(const QString& string) const
     return 0;
 }
 
-qreal WebPage::printMargin(const QVariantMap& map, const QString& key)
+qreal printMargin(const QVariantMap& map, const QString& key)
 {
     const QVariant margin = map.value(key);
     if (margin.isValid() && margin.canConvert(QVariant::String)) {
@@ -1178,7 +1172,7 @@ bool WebPage::renderPdf(const QString& fileName)
     QPrinter printer;
     printer.setOutputFormat(QPrinter::PdfFormat);
     printer.setOutputFileName(fileName);
-    printer.setResolution(m_dpi);
+    printer.setResolution(PHANTOMJS_PDF_DPI);
     QVariantMap paperSize = m_paperSize;
 
     if (paperSize.isEmpty()) {
@@ -1272,7 +1266,7 @@ bool WebPage::renderPdf(const QString& fileName)
 
     printer.setPageMargins(marginLeft, marginTop, marginRight, marginBottom, QPrinter::Point);
 
-    m_mainFrame->print(&printer, this);
+    m_mainFrame->print(&printer);
     return true;
 }
 
@@ -1291,7 +1285,7 @@ QString WebPage::windowName() const
     return m_mainFrame->evaluateJavaScript("window.name;").toString();
 }
 
-qreal WebPage::getHeight(const QVariantMap& map, const QString& key) const
+qreal getHeight(const QVariantMap& map, const QString& key)
 {
     QVariant footer = map.value(key);
     if (!footer.canConvert(QVariant::Map)) {
@@ -1330,7 +1324,7 @@ QString getHeaderFooter(const QVariantMap& map, const QString& key, QWebFrame* f
             }
         }
     }
-    frame->evaluateJavaScript("console.error('Bad header callback given, use phantom.callback);", QString());
+    frame->evaluateJavaScript("console.error('Bad header callback given, use phantom.callback);");
     return QString();
 }
 
@@ -1369,7 +1363,7 @@ bool WebPage::injectJs(const QString& jsFilePath)
 
 void WebPage::_appendScriptElement(const QString& scriptUrl)
 {
-    m_currentFrame->evaluateJavaScript(QString(JS_APPEND_SCRIPT_ELEMENT).arg(scriptUrl), scriptUrl);
+    m_currentFrame->evaluateJavaScript(QString(JS_APPEND_SCRIPT_ELEMENT).arg(scriptUrl));
 }
 
 QObject* WebPage::_getGenericCallback()
@@ -1450,8 +1444,9 @@ void WebPage::sendEvent(const QString& type, const QVariant& arg1, const QVarian
             // assume a raw integer char code was given
             key = arg1.toInt();
         }
-        QKeyEvent keyEvent(keyEventType, key, keyboardModifiers, text);
-        QCoreApplication::sendEvent(m_customWebPage, &keyEvent);
+        QKeyEvent* keyEvent = new QKeyEvent(keyEventType, key, keyboardModifiers, text);
+        QApplication::postEvent(m_customWebPage, keyEvent);
+        QApplication::processEvents();
         return;
     }
 
@@ -1512,10 +1507,11 @@ void WebPage::sendEvent(const QString& type, const QVariant& arg1, const QVarian
 
         // Prepare the Mouse event
         qDebug() << "Mouse Event:" << eventType << "(" << mouseEventType << ")" << m_mousePos << ")" << button << buttons;
-        QMouseEvent event(mouseEventType, m_mousePos, button, buttons, keyboardModifiers);
+        QMouseEvent* event = new QMouseEvent(mouseEventType, m_mousePos, button, buttons, keyboardModifiers);
 
         // Post and process events
-        QApplication::sendEvent(m_customWebPage, &event);
+        QApplication::postEvent(m_customWebPage, event);
+        QApplication::processEvents();
         return;
     }
 

@@ -35,8 +35,7 @@
 #define PHANTOMJS_VERSION_MAJOR     2
 #define PHANTOMJS_VERSION_MINOR     2
 #define PHANTOMJS_VERSION_PATCH     0
-#define PHANTOMJS_VERSION_NUMBER_STRING "2.2.0"
-#define PHANTOMJS_VERSION_STRING    ("2.2.0-" __DATE__ __TIME__)
+#define PHANTOMJS_VERSION_STRING    "2.2.0-development"
 
 #define HTTP_HEADER_CONTENT_LENGTH      "content-length"
 #define HTTP_HEADER_CONTENT_TYPE        "content-type"
@@ -68,7 +67,6 @@
 #define PAGE_SETTINGS_WEB_SECURITY_ENABLED  "webSecurityEnabled"
 #define PAGE_SETTINGS_JS_CAN_OPEN_WINDOWS   "javascriptCanOpenWindows"
 #define PAGE_SETTINGS_JS_CAN_CLOSE_WINDOWS  "javascriptCanCloseWindows"
-#define PAGE_SETTINGS_DPI                   "dpi"
 
 #define DEFAULT_WEBDRIVER_CONFIG            "127.0.0.1:8910"
 

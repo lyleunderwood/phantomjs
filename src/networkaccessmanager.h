@@ -110,7 +110,6 @@ signals:
     void resourceReceived(const QVariant& data);
     void resourceError(const QVariant& data);
     void resourceTimeout(const QVariant& data);
-    void networkError(const QVariant& data);
 
 private slots:
     void handleStarted();

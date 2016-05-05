@@ -49,7 +49,6 @@
 static const struct QCommandLineConfigEntry flags[] = {
     { QCommandLine::Option, '\0', "cookies-file", "Sets the file name to store the persistent cookies", QCommandLine::Optional },
     { QCommandLine::Option, '\0', "config", "Specifies JSON-formatted configuration file", QCommandLine::Optional },
-    { QCommandLine::Option, '\0', "clear-indexeddb", "Specifies to clear IndexedDB", QCommandLine::Optional },
     { QCommandLine::Option, '\0', "debug", "Prints additional warning and debug message: 'true' or 'false' (default)", QCommandLine::Optional },
     { QCommandLine::Option, '\0', "disk-cache", "Enables disk cache: 'true' or 'false' (default)", QCommandLine::Optional },
     { QCommandLine::Option, '\0', "disk-cache-path", "Specifies the location for the disk cache", QCommandLine::Optional },
@@ -178,7 +177,7 @@ void Config::loadJsonFile(const QString& filePath)
     // Add this object to the global scope
     webPage.mainFrame()->addToJavaScriptWindowObject("config", this);
     // Apply the JSON config settings to this very object
-    webPage.mainFrame()->evaluateJavaScript(configurator.arg(jsonConfig), QString());
+    webPage.mainFrame()->evaluateJavaScript(configurator.arg(jsonConfig));
 }
 
 QString Config::helpText() const
@@ -584,11 +583,11 @@ void Config::resetToDefaults()
     m_offlineStoragePath = QString();
     m_offlineStorageDefaultQuota = -1;
     m_localStoragePath = QString();
-    m_localStorageDefaultQuota = 5000;
+    m_localStorageDefaultQuota = -1;
     m_diskCacheEnabled = false;
     m_maxDiskCacheSize = -1;
     m_diskCachePath = QString();
-    m_ignoreSslErrors = true;
+    m_ignoreSslErrors = false;
     m_localUrlAccessEnabled = true;
     m_localToRemoteUrlAccessEnabled = false;
     m_outputEncoding = "UTF-8";
@@ -606,12 +605,12 @@ void Config::resetToDefaults()
     m_debug = false;
     m_remoteDebugPort = -1;
     m_remoteDebugAutorun = false;
-    m_webSecurityEnabled = false;
+    m_webSecurityEnabled = true;
     m_javascriptCanOpenWindows = true;
     m_javascriptCanCloseWindows = true;
     m_helpFlag = false;
     m_printDebugMessages = false;
-    m_sslProtocol = "any";
+    m_sslProtocol = "default";
     // Default taken from Chromium 35.0.1916.153
     m_sslCiphers = ("ECDHE-ECDSA-AES128-GCM-SHA256"
                     ":ECDHE-RSA-AES128-GCM-SHA256"
@@ -640,7 +639,6 @@ void Config::resetToDefaults()
     m_webdriverLogFile = QString();
     m_webdriverLogLevel = "INFO";
     m_webdriverSeleniumGridHub = QString();
-    m_clearIndexedDb = true;
 }
 
 void Config::setProxyAuthPass(const QString& value)
@@ -836,19 +834,6 @@ void Config::handleOption(const QString& option, const QVariant& value)
     if (option == "webdriver-selenium-grid-hub") {
         setWebdriverSeleniumGridHub(value.toString());
     }
-    if (option == "clear-indexeddb") {
-        setClearIndexedDb(value.toBool());
-    }
-}
-
-bool Config::clearIndexedDb()
-{
-    return m_clearIndexedDb;
-}
-
-void Config::setClearIndexedDb(bool value)
-{
-    m_clearIndexedDb = value;
 }
 
 void Config::handleParam(const QString& param, const QVariant& value)

@@ -260,8 +260,6 @@ function decorateNewPage(opts, page) {
 
     definePageSignalHandler(page, handlers, "onResourceTimeout", "resourceTimeout");
 
-    definePageSignalHandler(page, handlers, "onNetworkError", "networkError");
-
     definePageSignalHandler(page, handlers, "onAlert", "javaScriptAlertSent");
 
     definePageSignalHandler(page, handlers, "onConsoleMessage", "javaScriptConsoleMessageSent");
@@ -271,9 +269,9 @@ function decorateNewPage(opts, page) {
     // Private callback for "page.open()"
     definePageSignalHandler(page, handlers, "_onPageOpenFinished", "loadFinished");
 
-    page.onError = phantom.defaultErrorHandler;
+    phantom.__defineErrorSignalHandler__(page, page, handlers);
 
-    phantom.__defineErrorSignalHandler__(page, page);
+    page.onError = phantom.defaultErrorHandler;
 
     page.open = function (url, arg1, arg2, arg3, arg4) {
         var thisPage = this;

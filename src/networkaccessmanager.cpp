@@ -369,14 +369,6 @@ QNetworkReply* NetworkAccessManager::createRequest(Operation op, const QNetworkR
         reply = QNetworkAccessManager::createRequest(op, req, outgoingData);
     }
 
-    m_ids[reply] = m_idCounter;
-
-    // synchronous requests will be finished at this point
-    if (reply->isFinished()) {
-        handleFinished(reply);
-        return reply;
-    }
-
     // reparent jsNetworkRequest to make sure that it will be destroyed with QNetworkReply
     jsNetworkRequest.setParent(reply);
 
@@ -392,6 +384,8 @@ QNetworkReply* NetworkAccessManager::createRequest(Operation op, const QNetworkR
 
         connect(nt, SIGNAL(timeout()), this, SLOT(handleTimeout()));
     }
+
+    m_ids[reply] = m_idCounter;
 
     connect(reply, SIGNAL(readyRead()), this, SLOT(handleStarted()));
     connect(reply, SIGNAL(sslErrors(const QList<QSslError>&)), this, SLOT(handleSslErrors(const QList<QSslError>&)));
@@ -467,6 +461,7 @@ void NetworkAccessManager::provideAuthentication(QNetworkReply* reply, QAuthenti
     } else {
         m_authAttempts = 0;
         this->handleFinished(reply, 401, "Authorization Required");
+        reply->close();
     }
 }
 
@@ -487,28 +482,9 @@ void NetworkAccessManager::handleFinished(QNetworkReply* reply, const QVariant& 
 
     m_ids.remove(reply);
     m_started.remove(reply);
-
-    if (reply->error() != QNetworkReply::NoError) {
-        data["errorCode"] = reply->error();
-        data["errorString"] = reply->errorString();
-        data["status"] = status;
-        data["statusText"] = statusText;
-        emit resourceError(data);
-    } else {
-        // check for redirect
-        QUrl redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
-        if (redirect.isValid() && reply->url() != redirect) {
-            if (redirect.isRelative()) {
-                redirect = reply->url().resolved(redirect);
-            }
-            QNetworkRequest req(redirect);
-            this->get(req);
-        }
-        emit resourceReceived(data);
-    }
-
-    reply->close();
     reply->deleteLater();
+
+    emit resourceReceived(data);
 }
 
 void NetworkAccessManager::handleSslErrors(const QList<QSslError>& errors)
@@ -539,9 +515,7 @@ void NetworkAccessManager::handleNetworkError()
     data["status"] = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
     data["statusText"] = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute);
 
-    emit networkError(data);
-
-    reply->deleteLater();
+    emit resourceError(data);
 }
 
 QVariantList NetworkAccessManager::getHeadersFromReply(const QNetworkReply* reply)

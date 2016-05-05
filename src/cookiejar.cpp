@@ -107,14 +107,13 @@ CookieJar::~CookieJar()
 
 bool CookieJar::setCookiesFromUrl(const QList<QNetworkCookie>& cookieList, const QUrl& url)
 {
-    bool isCookieAdded = false;
     // Update cookies in memory
     if (isEnabled()) {
-        isCookieAdded = QNetworkCookieJar::setCookiesFromUrl(cookieList, url);
+        QNetworkCookieJar::setCookiesFromUrl(cookieList, url);
         save();
     }
     // No changes occurred
-    return isCookieAdded;
+    return false;
 }
 
 QList<QNetworkCookie> CookieJar::cookiesForUrl(const QUrl& url) const
@@ -128,10 +127,9 @@ QList<QNetworkCookie> CookieJar::cookiesForUrl(const QUrl& url) const
 
 bool CookieJar::addCookie(const QNetworkCookie& cookie, const QString& url)
 {
-    bool isCookieAdded = false;
     if (isEnabled() && (!url.isEmpty() || !cookie.domain().isEmpty())) {
         // Save a single cookie
-        isCookieAdded = setCookiesFromUrl(
+        setCookiesFromUrl(
             QList<QNetworkCookie>() << cookie, //< unfortunately, "setCookiesFromUrl" requires a list
             !url.isEmpty() ?
             url :           //< use given URL
@@ -142,19 +140,17 @@ bool CookieJar::addCookie(const QNetworkCookie& cookie, const QString& url)
 
         // Return "true" if the cookie was really set
         if (contains(cookie)) {
-            isCookieAdded = true;
+            return true;
         }
-    }
-
-    if (!isCookieAdded) {
         qDebug() << "CookieJar - Rejected Cookie" << cookie.toRawForm();
+        return false;
     }
-    return isCookieAdded;
+    return false;
 }
 
-bool CookieJar::addCookie(const QVariantMap& cookie)
+void CookieJar::addCookie(const QVariantMap& cookie)
 {
-    return addCookieFromMap(cookie);
+    addCookieFromMap(cookie);
 }
 
 bool CookieJar::addCookieFromMap(const QVariantMap& cookie, const QString& url)
@@ -193,7 +189,9 @@ bool CookieJar::addCookieFromMap(const QVariantMap& cookie, const QString& url)
         if (expiresVar.isValid()) {
             QDateTime expirationDate;
             if (expiresVar.type() == QVariant::String) {
-                expirationDate = QDateTime::fromString(expiresVar.toString(), Qt::ISODate);
+                // Set cookie expire date via "classic" string format
+                QString datetime = expiresVar.toString().replace(" GMT", "");
+                expirationDate = QDateTime::fromString(datetime, "ddd, dd MMM yyyy hh:mm:ss");
             } else if (expiresVar.type() == QVariant::Double) {
                 // Set cookie expire date via "number of seconds since epoch"
                 // NOTE: Every JS number is a Double.
@@ -201,7 +199,6 @@ bool CookieJar::addCookieFromMap(const QVariantMap& cookie, const QString& url)
                 expirationDate = QDateTime::fromMSecsSinceEpoch(expiresVar.toLongLong());
             }
 
-            qDebug() << newCookie.expirationDate().toString(Qt::ISODate);
             if (expirationDate.isValid()) {
                 newCookie.setExpirationDate(expirationDate);
             }
@@ -209,8 +206,6 @@ bool CookieJar::addCookieFromMap(const QVariantMap& cookie, const QString& url)
 
         return addCookie(newCookie, url);
     }
-
-    qDebug() << "Cookie must have name and value";
     return false;
 }
 
@@ -226,12 +221,13 @@ bool CookieJar::addCookies(const QList<QNetworkCookie>& cookiesList, const QStri
     return added;
 }
 
-int CookieJar::addCookiesFromMap(const QVariantList& cookiesList, const QString& url)
+bool CookieJar::addCookiesFromMap(const QVariantList& cookiesList, const QString& url)
 {
-    int added = 0;
+    bool added = false;
     for (int i = cookiesList.length() - 1; i >= 0; --i) {
         if (addCookieFromMap(cookiesList.at(i).toMap(), url)) {
-            added++;
+            // change it to "true" if at least 1 cookie was set
+            added = true;
         }
     }
     return added;
