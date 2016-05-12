@@ -442,7 +442,9 @@ WebPage::WebPage(QObject* parent, const QUrl& baseUrl)
 WebPage::~WebPage()
 {
     if (Phantom::instance()->config()->clearIndexedDb()) {
-        this->evaluateJavaScript("window.indexedDB.webkitGetDatabaseNames().onsuccess=function(e,a){var t=e.target.result;for(var n in t)indexedDB.deleteDatabase(t[n])};");
+        m_mainFrame->evaluateJavaScript(
+            "window.indexedDB.webkitGetDatabaseNames().onsuccess=function(e){var a=e.target.result;for(var t in a)window.indexedDB.deleteDatabase(a[t])};",
+            QString("phantomjs://webpage.evaluate()"));
     }
 
     emit closing(this);

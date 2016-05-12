@@ -551,7 +551,6 @@ private:
     bool m_ownsPages;
     bool m_shouldInterruptJs;
     int m_loadingProgress;
-    CookieJar* m_cookieJar;
     qreal m_dpi;
 
     friend class Phantom;
