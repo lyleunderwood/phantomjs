@@ -1,6 +1,6 @@
 
-if(!equals(QT_MAJOR_VERSION, 5)|!equals(QT_MINOR_VERSION, 5)) {
-    error("This program can only be compiled with Qt 5.5.x.")
+if(!equals(QT_MAJOR_VERSION, 5)|!equals(QT_MINOR_VERSION, 6)) {
+    error("This program can only be compiled with Qt 5.6.x.")
 }
 
 TEMPLATE = app
@@ -23,7 +23,6 @@ HEADERS += \
     phantom.h \
     callback.h \
     webpage.h \
-    webserver.h \
     consts.h \
     utils.h \
     networkaccessmanager.h \
@@ -41,7 +40,6 @@ HEADERS += \
 SOURCES += phantom.cpp \
     callback.cpp \
     webpage.cpp \
-    webserver.cpp \
     main.cpp \
     utils.cpp \
     networkaccessmanager.cpp \
@@ -61,12 +59,10 @@ OTHER_FILES += \
     configurator.js \
     modules/fs.js \
     modules/webpage.js \
-    modules/webserver.js \
     modules/child_process.js \
     modules/cookiejar.js \
     repl.js
 
-include(mongoose/mongoose.pri)
 include(linenoise/linenoise.pri)
 include(qcommandline/qcommandline.pri)
 
@@ -87,7 +83,7 @@ win32-msvc* {
       _CRT_SECURE_NO_WARNINGS
     # ingore warnings:
     # 4049 - locally defined symbol 'symbol' imported
-    QMAKE_LFLAGS += /ignore:4049
+    QMAKE_LFLAGS += /ignore:4049 /LARGEADDRESSAWARE
     LIBS += -lCrypt32 -lzlib
     CONFIG(static) {
         DEFINES += STATIC_BUILD
