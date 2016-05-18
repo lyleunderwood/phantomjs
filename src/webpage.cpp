@@ -1459,8 +1459,8 @@ void WebPage::sendEvent(const QString& type, const QVariant& arg1, const QVarian
             // assume a raw integer char code was given
             key = arg1.toInt();
         }
-        QKeyEvent keyEvent(keyEventType, key, keyboardModifiers, text);
-        QCoreApplication::sendEvent(m_customWebPage, &keyEvent);
+        QKeyEvent* keyEvent = new QKeyEvent(keyEventType, key, keyboardModifiers, text);
+        QApplication::postEvent(m_customWebPage, keyEvent);
         return;
     }
 
@@ -1521,10 +1521,10 @@ void WebPage::sendEvent(const QString& type, const QVariant& arg1, const QVarian
 
         // Prepare the Mouse event
         qDebug() << "Mouse Event:" << eventType << "(" << mouseEventType << ")" << m_mousePos << ")" << button << buttons;
-        QMouseEvent event(mouseEventType, m_mousePos, button, buttons, keyboardModifiers);
+        QMouseEvent* event = new QMouseEvent(mouseEventType, m_mousePos, button, buttons, keyboardModifiers);
 
         // Post and process events
-        QApplication::sendEvent(m_customWebPage, &event);
+        QApplication::postEvent(m_customWebPage, event);
         return;
     }
 

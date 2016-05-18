@@ -103,7 +103,7 @@ protected:
     QString m_userName;
     QString m_password;
     QNetworkReply* createRequest(Operation op, const QNetworkRequest& req, QIODevice* outgoingData = 0);
-    void handleFinished(QNetworkReply* reply, const QVariant& status, const QVariant& statusText);
+    void handleFinished(QNetworkReply* reply, int status, const QString& statusText);
 
 signals:
     void resourceRequested(const QVariant& data, QObject*);

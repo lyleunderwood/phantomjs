@@ -453,8 +453,8 @@ void NetworkAccessManager::handleFinished(QNetworkReply* reply)
         return;
     }
 
-    QVariant status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-    QVariant statusText = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute);
+    int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    QString statusText = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString();
 
     this->handleFinished(reply, status, statusText);
 }
@@ -470,7 +470,7 @@ void NetworkAccessManager::provideAuthentication(QNetworkReply* reply, QAuthenti
     }
 }
 
-void NetworkAccessManager::handleFinished(QNetworkReply* reply, const QVariant& status, const QVariant& statusText)
+void NetworkAccessManager::handleFinished(QNetworkReply* reply,int status, const QString& statusText)
 {
     QVariantList headers = getHeadersFromReply(reply);
 
@@ -491,23 +491,10 @@ void NetworkAccessManager::handleFinished(QNetworkReply* reply, const QVariant& 
     if (reply->error() != QNetworkReply::NoError) {
         data["errorCode"] = reply->error();
         data["errorString"] = reply->errorString();
-        data["status"] = status;
-        data["statusText"] = statusText;
         emit resourceError(data);
-    } else {
-        // check for redirect
-        QUrl redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
-        if (redirect.isValid() && reply->url() != redirect) {
-            if (redirect.isRelative()) {
-                redirect = reply->url().resolved(redirect);
-            }
-            QNetworkRequest req(redirect);
-            this->get(req);
-        }
-        emit resourceReceived(data);
     }
 
-    reply->close();
+    emit resourceReceived(data);
     reply->deleteLater();
 }
 
@@ -539,6 +526,8 @@ void NetworkAccessManager::handleNetworkError()
     data["status"] = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
     data["statusText"] = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute);
 
+    // for compatibility
+    emit resourceError(data);
     emit networkError(data);
 
     reply->deleteLater();
