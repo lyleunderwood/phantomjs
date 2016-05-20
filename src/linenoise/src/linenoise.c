@@ -113,6 +113,7 @@
 #else
 /* Microsoft headers don't like old POSIX names */
 #define strdup _strdup
+#define snprintf _snprintf
 #endif
 #else
 #include <termios.h>
