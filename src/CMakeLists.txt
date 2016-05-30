@@ -49,8 +49,8 @@ include_directories(
     qcommandline
     ${Qt5Gui_INCLUDE_DIRS}
     ${Qt5Network_INCLUDE_DIRS}
-    ${Qt5Webkit_INCLUDE_DIRS}
-    ${Qt5WebkitWidgets_INCLUDE_DIRS}
+    ${Qt5WebKit_INCLUDE_DIR}
+    ${Qt5WebKitWidgets_INCLUDE_DIR}
     ${Qt5Widgets_INCLUDE_DIRS}
 )
 
@@ -58,8 +58,8 @@ set(PhantomJS_LIRARIES
     ${Qt5Core_LIBRARIES}
     ${Qt5Gui_LIBRARIES}
     ${Qt5Network_LIBRARIES}
-    ${Qt5Webkit_LIBRARIES}
-    ${Qt5WebkitWidgets_LIBRARIES}
+    ${Qt5WebKit_LIBRARIES}
+    ${Qt5WebKitWidgets_LIBRARIES}
     ${Qt5Widgets_LIBRARIES}
     ${Qt5PrintSupport_LIBRARIES}
 )
