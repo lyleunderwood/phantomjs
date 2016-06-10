@@ -306,6 +306,8 @@ void NetworkAccessManager::setCookieJar(QNetworkCookieJar* cookieJar)
 QNetworkReply* NetworkAccessManager::createRequest(Operation op, const QNetworkRequest& request, QIODevice* outgoingData)
 {
     QNetworkRequest req(request);
+    req.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
+
     QString scheme = req.url().scheme().toLower();
 
     if (!QSslSocket::supportsSsl()) {

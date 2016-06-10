@@ -105,14 +105,14 @@ protected:
     QNetworkReply* createRequest(Operation op, const QNetworkRequest& req, QIODevice* outgoingData = 0);
     void handleFinished(QNetworkReply* reply, int status, const QString& statusText);
 
-signals:
+Q_SIGNALS:
     void resourceRequested(const QVariant& data, QObject*);
     void resourceReceived(const QVariant& data);
     void resourceError(const QVariant& data);
     void resourceTimeout(const QVariant& data);
     void networkError(const QVariant& data);
 
-private slots:
+private Q_SLOTS:
     void handleStarted();
     void handleFinished(QNetworkReply* reply);
     void provideAuthentication(QNetworkReply* reply, QAuthenticator* authenticator);
