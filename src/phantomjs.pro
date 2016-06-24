@@ -1,6 +1,6 @@
 
-if(!equals(QT_MAJOR_VERSION, 5)|!equals(QT_MINOR_VERSION, 5)) {
-    error("This program can only be compiled with Qt 5.5.x.")
+if(!equals(QT_MAJOR_VERSION, 5)|!equals(QT_MINOR_VERSION, 6)) {
+    error("This program can only be compiled with Qt 5.6.x.")
 }
 
 TEMPLATE = app
