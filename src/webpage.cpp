@@ -1461,6 +1461,7 @@ void WebPage::sendEvent(const QString& type, const QVariant& arg1, const QVarian
         }
         QKeyEvent* keyEvent = new QKeyEvent(keyEventType, key, keyboardModifiers, text);
         QApplication::postEvent(m_customWebPage, keyEvent);
+        QApplication::processEvents();
         return;
     }
 
@@ -1525,6 +1526,7 @@ void WebPage::sendEvent(const QString& type, const QVariant& arg1, const QVarian
 
         // Post and process events
         QApplication::postEvent(m_customWebPage, event);
+        QApplication::processEvents();
         return;
     }
 
@@ -1547,6 +1549,7 @@ void WebPage::sendEvent(const QString& type, const QVariant& arg1, const QVarian
         // If we fire the event using postEvent to m_customWebPage, it will end up in QWebPagePrivate::contextMenuEvent,
         // which will not forward it to JS at all
         m_customWebPage->swallowContextMenuEvent(event);
+        QApplication::processEvents();
         return;
     }
 

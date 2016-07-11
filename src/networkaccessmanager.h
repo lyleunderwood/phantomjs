@@ -34,8 +34,8 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QSslConfiguration>
-#include <QTimer>
 #include <QStringList>
+#include <QTimer>
 
 class Config;
 class QAuthenticator;

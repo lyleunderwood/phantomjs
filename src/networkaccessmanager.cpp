@@ -39,10 +39,10 @@
 #include <QSslKey>
 #include <QRegExp>
 
-#include "phantom.h"
 #include "config.h"
 #include "cookiejar.h"
 #include "networkaccessmanager.h"
+#include "phantom.h"
 
 // 10 MB
 const qint64 MAX_REQUEST_POST_BODY_SIZE = 10 * 1000 * 1000;
@@ -389,15 +389,15 @@ QNetworkReply* NetworkAccessManager::createRequest(Operation op, const QNetworkR
         connect(nt, SIGNAL(timeout()), this, SLOT(handleTimeout()));
     }
 
-    connect(reply, SIGNAL(readyRead()), this, SLOT(handleStarted()));
-    connect(reply, SIGNAL(sslErrors(const QList<QSslError>&)), this, SLOT(handleSslErrors(const QList<QSslError>&)));
-    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(handleNetworkError()));
-
     // synchronous requests will be finished at this point
     if (reply->isFinished()) {
         handleFinished(reply);
         return reply;
     }
+
+    connect(reply, SIGNAL(readyRead()), this, SLOT(handleStarted()));
+    connect(reply, SIGNAL(sslErrors(const QList<QSslError>&)), this, SLOT(handleSslErrors(const QList<QSslError>&)));
+    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(handleNetworkError()));
 
     return reply;
 }
@@ -446,6 +446,10 @@ void NetworkAccessManager::handleStarted()
     data["time"] = QDateTime::currentDateTime();
     data["body"] = "";
 
+    if (reply->isFinished()) {
+        handleFinished(reply);
+    }
+
     emit resourceReceived(data);
 }
 
@@ -472,7 +476,7 @@ void NetworkAccessManager::provideAuthentication(QNetworkReply* reply, QAuthenti
     }
 }
 
-void NetworkAccessManager::handleFinished(QNetworkReply* reply,int status, const QString& statusText)
+void NetworkAccessManager::handleFinished(QNetworkReply* reply, int status, const QString& statusText)
 {
     QVariantList headers = getHeadersFromReply(reply);
 
@@ -495,8 +499,10 @@ void NetworkAccessManager::handleFinished(QNetworkReply* reply,int status, const
         data["errorString"] = reply->errorString();
         emit resourceError(data);
     }
-
     emit resourceReceived(data);
+
+    QApplication::processEvents();
+
     reply->deleteLater();
 }
 
@@ -529,10 +535,8 @@ void NetworkAccessManager::handleNetworkError()
     data["statusText"] = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute);
 
     // for compatibility
-    emit resourceError(data);
     emit networkError(data);
-
-    reply->deleteLater();
+    QApplication::processEvents();
 }
 
 QVariantList NetworkAccessManager::getHeadersFromReply(const QNetworkReply* reply)
