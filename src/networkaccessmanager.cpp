@@ -501,8 +501,6 @@ void NetworkAccessManager::handleFinished(QNetworkReply* reply, int status, cons
     }
     emit resourceReceived(data);
 
-    QApplication::processEvents();
-
     reply->deleteLater();
 }
 
@@ -521,9 +519,12 @@ void NetworkAccessManager::handleSslErrors(const QList<QSslError>& errors)
 void NetworkAccessManager::handleNetworkError()
 {
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+    int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    QString status = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString();
+
     qDebug() << "Network - Resource request error:"
-             << reply->error()
-             << "(" << reply->errorString() << ")"
+             << statusCode
+             << "(" << status << ")"
              << "URL:" << reply->url().toEncoded();
 
     QVariantMap data;
@@ -531,12 +532,11 @@ void NetworkAccessManager::handleNetworkError()
     data["url"] = reply->url().toEncoded().data();
     data["errorCode"] = reply->error();
     data["errorString"] = reply->errorString();
-    data["status"] = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-    data["statusText"] = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute);
+    data["status"] = statusCode;
+    data["statusText"] = status;
 
     // for compatibility
-    emit networkError(data);
-    QApplication::processEvents();
+    emit resourceError(data);
 }
 
 QVariantList NetworkAccessManager::getHeadersFromReply(const QNetworkReply* reply)
