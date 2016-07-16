@@ -432,8 +432,6 @@ WebPage::WebPage(QObject* parent, const QUrl& baseUrl)
             SIGNAL(resourceError(QVariant)));
     connect(m_networkAccessManager, SIGNAL(resourceTimeout(QVariant)),
             SIGNAL(resourceTimeout(QVariant)));
-    connect(m_networkAccessManager, SIGNAL(networkError(QVariant)),
-            SIGNAL(networkError(QVariant)));
 
     m_dpi = qRound(QApplication::primaryScreen()->logicalDotsPerInch());
     m_customWebPage->setViewportSize(QSize(400, 300));
@@ -442,7 +440,7 @@ WebPage::WebPage(QObject* parent, const QUrl& baseUrl)
 WebPage::~WebPage()
 {
     if (Phantom::instance()->config()->clearIndexedDb()) {
-        m_customWebPage->deleteAllIndexedDatabases();
+        //m_customWebPage->deleteAllIndexedDatabases();
     }
 
     emit closing(this);
@@ -924,6 +922,12 @@ void WebPage::openUrl(const QString& address, const QVariant& op, const QVariant
         }
     }
 
+    QMapIterator<QString, QVariant> i(customHeaders());
+    while (i.hasNext()) {
+        i.next();
+        request.setRawHeader(i.key().toUtf8(), i.value().toString().toUtf8());
+    }
+
     if (operation.isEmpty()) {
         operation = "get";
     }
@@ -1021,7 +1025,7 @@ bool WebPage::render(const QString& fileName, const QVariantMap& option)
             f = format.toLocal8Bit().constData();
         }
 
-        retval = rawPageRendering.save(outFileName, f, quality);
+        retval = rawPageRendering.save(outFileName, "png", quality);
     }
 
     if (tempFileName != "") {
