@@ -1465,7 +1465,7 @@ void WebPage::sendEvent(const QString& type, const QVariant& arg1, const QVarian
         }
         QKeyEvent* keyEvent = new QKeyEvent(keyEventType, key, keyboardModifiers, text);
         QApplication::postEvent(m_customWebPage, keyEvent);
-        QApplication::processEvents();
+        //QApplication::processEvents();
         return;
     }
 
@@ -1530,7 +1530,7 @@ void WebPage::sendEvent(const QString& type, const QVariant& arg1, const QVarian
 
         // Post and process events
         QApplication::postEvent(m_customWebPage, event);
-        QApplication::processEvents();
+        //QApplication::processEvents();
         return;
     }
 
