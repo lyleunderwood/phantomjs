@@ -367,11 +367,6 @@ QObject* Phantom::_createChildProcess()
     return m_childprocess;
 }
 
-QObject* Phantom::createCallback()
-{
-    return new Callback(this);
-}
-
 void Phantom::loadModule(const QString& moduleSource, const QString& filename)
 {
     if (m_terminated) {

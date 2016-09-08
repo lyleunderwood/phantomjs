@@ -110,7 +110,6 @@ public slots:
     QObject* createWebServer();
     QObject* createFilesystem();
     QObject* createSystem();
-    QObject* createCallback();
     void loadModule(const QString& moduleSource, const QString& filename);
     bool injectJs(const QString& jsFilePath);
 

@@ -69,7 +69,7 @@ class WebPage : public QObject, public QWebFrame::PrintCallback
     Q_PROPERTY(QVariantMap clipRect READ clipRect WRITE setClipRect)
     Q_PROPERTY(QVariantMap scrollPosition READ scrollPosition WRITE setScrollPosition)
     Q_PROPERTY(bool navigationLocked READ navigationLocked WRITE setNavigationLocked)
-    Q_PROPERTY(QVariantMap customHeaders READ customHeaders WRITE setCustomHeaders)
+    Q_PROPERTY(QVariantList customHeaders READ customHeaders WRITE setCustomHeaders)
     Q_PROPERTY(qreal zoomFactor READ zoomFactor WRITE setZoomFactor)
     Q_PROPERTY(QVariantList cookies READ cookies WRITE setCookies)
     Q_PROPERTY(QString windowName READ windowName)
@@ -127,8 +127,8 @@ public:
     void setNavigationLocked(bool lock);
     bool navigationLocked();
 
-    void setCustomHeaders(const QVariantMap& headers);
-    QVariantMap customHeaders() const;
+    void setCustomHeaders(const QVariantList& headers);
+    QVariantList customHeaders() const;
 
     int showInspector(const int remotePort = -1);
 

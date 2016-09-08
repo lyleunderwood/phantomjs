@@ -33,6 +33,7 @@
 #include <QDesktopServices>
 #include <QNetworkDiskCache>
 #include <QNetworkRequest>
+#include <QJsonObject>
 #include <QSslSocket>
 #include <QSslCertificate>
 #include <QSslCipher>
@@ -281,12 +282,12 @@ void NetworkAccessManager::setMaxAuthAttempts(int maxAttempts)
     m_maxAuthAttempts = maxAttempts;
 }
 
-void NetworkAccessManager::setCustomHeaders(const QVariantMap& headers)
+void NetworkAccessManager::setCustomHeaders(const QVariantList& headers)
 {
     m_customHeaders = headers;
 }
 
-QVariantMap NetworkAccessManager::customHeaders() const
+QVariantList NetworkAccessManager::customHeaders() const
 {
     return m_customHeaders;
 }
@@ -332,23 +333,16 @@ QNetworkReply* NetworkAccessManager::createRequest(Operation op, const QNetworkR
         }
     }
 
-    // set custom HTTP headers
-    QVariantMap::const_iterator i = m_customHeaders.begin();
-    while (i != m_customHeaders.end()) {
-        req.setRawHeader(i.key().toLatin1(), i.value().toByteArray());
-        ++i;
-    }
-
-    m_idCounter++;
-
     QVariantList headers;
-    foreach(QByteArray headerName, req.rawHeaderList()) {
+    foreach(QByteArray headerName, req.rawHeaderList())
+    {
         QVariantMap header;
         header["name"] = QString::fromUtf8(headerName);
         header["value"] = QString::fromUtf8(req.rawHeader(headerName));
         headers += header;
     }
 
+    m_idCounter++;
     QVariantMap data;
     data["id"] = m_idCounter;
     data["url"] = url.data();
@@ -370,6 +364,9 @@ QNetworkReply* NetworkAccessManager::createRequest(Operation op, const QNetworkR
     } else {
         reply = QNetworkAccessManager::createRequest(op, req, outgoingData);
     }
+
+    // after request has been created, we can change the order of its headers
+    setRequestHeaders(&req);
 
     m_ids[reply] = m_idCounter;
 
@@ -550,4 +547,59 @@ QVariantList NetworkAccessManager::getHeadersFromReply(const QNetworkReply* repl
     }
 
     return headers;
+}
+/*
+page.customHeaders = [
+{ 'Host': 'myhost.com'}, // puts the Host header with custom value before all headers
+'Accept-Language'  // pass a string to use the default (current) value
+// all not-specified headers will be in custom order with their current values
+];
+*/
+void NetworkAccessManager::setRequestHeaders(QNetworkRequest* request)
+{
+    // save and clear existing headers
+    QHash<QByteArray, QByteArray> originalHeaders;
+    for (QByteArray headerName : request->rawHeaderList()) {
+        originalHeaders[headerName] = request->rawHeader(headerName);
+    }
+
+    // set custom headers
+    QVariantList::const_iterator it = m_customHeaders.begin();
+
+    while (it != m_customHeaders.end()) {
+        QVariant item = *it;
+        if (item.isValid()) {
+            if (item.type() == QVariant::String) {
+                // use the existing header
+                QByteArray headerName = item.toString().toLatin1();
+                QByteArray headerValue = originalHeaders[headerName];
+                request->setRawHeader(headerName, headerValue);
+
+                // remove the header from old headers
+                originalHeaders.remove(headerName);
+            } else {
+                // assume that the item is the QJSonObject
+                QJsonObject obj = item.toJsonObject();
+                for (QString key : obj.keys()) {
+                    QByteArray headerName = key.toLatin1();
+
+                    QJsonValue objValue = obj.value(key);
+                    if (objValue.isString()) {
+                        QByteArray headerValue = objValue.toString().toLatin1();
+
+                        request->setRawHeader(headerName, headerValue);
+
+                        // remove the header from old headers
+                        originalHeaders.remove(headerName);
+                    }
+                }
+            }
+        }
+        ++it;
+    }
+
+    // set the remaining original headers
+    for (QByteArray headerName : originalHeaders) {
+        request->setRawHeader(headerName, originalHeaders.value(headerName));
+    }
 }

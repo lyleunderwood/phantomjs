@@ -835,12 +835,12 @@ void WebPage::finish(bool ok)
     emit loadFinished(status);
 }
 
-void WebPage::setCustomHeaders(const QVariantMap& headers)
+void WebPage::setCustomHeaders(const QVariantList& headers)
 {
     m_networkAccessManager->setCustomHeaders(headers);
 }
 
-QVariantMap WebPage::customHeaders() const
+QVariantList WebPage::customHeaders() const
 {
     return m_networkAccessManager->customHeaders();
 }
@@ -920,12 +920,6 @@ void WebPage::openUrl(const QString& address, const QVariant& op, const QVariant
                 request.setRawHeader(i.key().toUtf8(), i.value().toString().toUtf8());
             }
         }
-    }
-
-    QMapIterator<QString, QVariant> i(customHeaders());
-    while (i.hasNext()) {
-        i.next();
-        request.setRawHeader(i.key().toUtf8(), i.value().toString().toUtf8());
     }
 
     if (operation.isEmpty()) {

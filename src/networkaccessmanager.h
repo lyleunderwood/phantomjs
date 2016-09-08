@@ -87,8 +87,8 @@ public:
     void setPassword(const QString& password);
     void setMaxAuthAttempts(int maxAttempts);
     void setResourceTimeout(int resourceTimeout);
-    void setCustomHeaders(const QVariantMap& headers);
-    QVariantMap customHeaders() const;
+    void setCustomHeaders(const QVariantList& headers);
+    QVariantList customHeaders() const;
     QStringList captureContent() const;
     void setCaptureContent(const QStringList& patterns);
 
@@ -122,12 +122,13 @@ private Q_SLOTS:
 private:
     void prepareSslConfiguration(const Config* config);
     QVariantList getHeadersFromReply(const QNetworkReply* reply);
+    void setRequestHeaders(QNetworkRequest* request);
 
     QHash<QNetworkReply*, int> m_ids;
     QSet<QNetworkReply*> m_started;
     int m_idCounter;
     QNetworkDiskCache* m_networkDiskCache;
-    QVariantMap m_customHeaders;
+    QVariantList m_customHeaders;
     QSslConfiguration m_sslConfiguration;
 };
 
